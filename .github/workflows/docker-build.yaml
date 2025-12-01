@@ -1,11 +1,6 @@
 name: Docker Build and Deploy
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "app/**"
-      - "Dockerfile"
   workflow_dispatch:
 
 env:
