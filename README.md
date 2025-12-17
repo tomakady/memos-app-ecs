@@ -45,60 +45,9 @@ This project was completed as part of the **CoderCo ECS Project** - a hands-on l
 
 ## Project Architecture
 
-```mermaid
-graph TB
-    subgraph "Internet"
-        User[Users]
-    end
+![Memos Diagram Light](docs/screenshots/memos-diagram-light.png)
 
-    subgraph "AWS Cloud"
-        subgraph "Route 53"
-            DNS[tm.tomakady.com]
-        end
-
-        subgraph "ACM"
-            Cert[SSL Certificate]
-        end
-
-        subgraph "VPC - 10.0.0.0/16"
-            subgraph "Public Subnets"
-                ALB[Application Load Balancer<br/>Port 443/80]
-            end
-
-            subgraph "Private Subnets"
-                ECS[ECS Fargate Service<br/>Memos Container<br/>Port 5230]
-                EFS[Amazon EFS<br/>Persistent Storage]
-            end
-        end
-
-        subgraph "ECR"
-            Registry[Docker Image Registry]
-        end
-
-        subgraph "CloudWatch"
-            Logs[Application Logs]
-        end
-
-        subgraph "IAM"
-            Roles[Task Execution Role<br/>Task Role<br/>GitHub Actions Role]
-        end
-    end
-
-    subgraph "CI/CD"
-        GitHub[GitHub Actions<br/>Build & Deploy Pipeline]
-    end
-
-    User -->|HTTPS| DNS
-    DNS --> ALB
-    Cert --> ALB
-    ALB -->|Port 5230| ECS
-    ECS -->|Mount| EFS
-    ECS -->|Logs| Logs
-    GitHub -->|Push Image| Registry
-    Registry -->|Pull Image| ECS
-    Roles --> ECS
-    Roles --> GitHub
-```
+![Memos Diagram Dark](docs/screenshots/memos-diagram-dark.png)
 
 ### Architecture Components
 
