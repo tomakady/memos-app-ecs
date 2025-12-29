@@ -1,0 +1,37 @@
+name: Terraform Plan
+
+on:
+  pull_request:
+    branches: [main]
+    paths: ["terraform/**"]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+env:
+  AWS_REGION: eu-west-2
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./terraform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform init
+      - run: terraform plan -out=tfplan
+      - if: github.event_name == 'pull_request'
+        run: |
+          terraform show -no-color tfplan > plan.txt
+          gh pr comment ${{ github.event.number }} --body-file plan.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

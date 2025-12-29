@@ -1,0 +1,35 @@
+name: Terraform Destroy
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "destroy" to confirm'
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: eu-west-2
+
+jobs:
+  destroy:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.confirm == 'destroy'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+      - uses: hashicorp/setup-terraform@v3
+      - run: |
+          RECORD=$(aws route53 list-resource-record-sets --hosted-zone-id Z098798336WBPZ6UWLS4I --query "ResourceRecordSets[?Name=='tm.tomakady.com.' && Type=='A']" --output json)
+          [ "$RECORD" != "[]" ] && [ "$RECORD" != "" ] && aws route53 change-resource-record-sets --hosted-zone-id Z098798336WBPZ6UWLS4I --change-batch "{\"Changes\":[{\"Action\":\"DELETE\",\"ResourceRecordSet\":$(echo $RECORD | jq '.[0]')}]}" || true
+        continue-on-error: true
+      - run: |
+          cd infra
+          terraform init
+          terraform destroy -auto-approve

@@ -1,0 +1,49 @@
+# Terraform directories
+**/.terraform/*
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+*.tfvars
+*.tfplan
+
+# State files
+*.tfstate
+*.tfstate.*
+
+# Crash logs
+crash.log
+crash.*.log
+
+# Variable files (contains secrets)
+*.tfvars
+!terraform.tfvars.example
+
+# Override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# CLI config
+.terraformrc
+terraform.rc
+
+# Keys
+*.pem
+
+# Environment
+.env
+
+# Personal notes
+docs/notes.md
+
+# AWS credentials
+aws-script.sh
+
+# Script instructions
+scripts/script-instructions.md
+
+terraform - backup
+.github/workflows/deploy.yaml
+.github/workflows/destroy.yaml

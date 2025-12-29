@@ -1,0 +1,34 @@
+name: Destroy Terraform Backend
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "destroy" to confirm'
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: eu-west-2
+  S3_BUCKET: memos-terraform-state
+  DYNAMODB_TABLE: memos-terraform-locks
+  ECR_REPOSITORY: memos-dev
+
+jobs:
+  destroy-backend:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.confirm == 'destroy'
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - run: |
+          aws ecr delete-repository --repository-name ${{ env.ECR_REPOSITORY }} --force --region ${{ env.AWS_REGION }} || true
+          aws s3api list-object-versions --bucket ${{ env.S3_BUCKET }} --output json | jq -r '.Versions[]?, .DeleteMarkers[]? | "--key \"\(.Key)\" --version-id \(.VersionId)"' | xargs -I {} aws s3api delete-object --bucket ${{ env.S3_BUCKET }} {} || true
+          aws s3api delete-bucket --bucket ${{ env.S3_BUCKET }} --region ${{ env.AWS_REGION }} || true
+          aws dynamodb delete-table --table-name ${{ env.DYNAMODB_TABLE }} --region ${{ env.AWS_REGION }} || true

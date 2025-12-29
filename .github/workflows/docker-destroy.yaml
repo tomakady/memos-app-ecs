@@ -1,0 +1,40 @@
+name: Docker Image Destroy
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "destroy" to confirm'
+        required: true
+      image_tag:
+        description: "Image tag to delete"
+        required: false
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: eu-west-2
+  ECR_REPOSITORY: memos-dev
+  ECS_CLUSTER: memos-dev-cluster
+  ECS_SERVICE: memos-dev-service
+
+jobs:
+  destroy:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.confirm == 'destroy'
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+      - uses: aws-actions/amazon-ecr-login@v2
+        id: login-ecr
+      - run: |
+          IMAGE_TAG="${{ github.event.inputs.image_tag || github.sha }}"
+          DIGEST=$(aws ecr batch-get-image --repository-name ${{ env.ECR_REPOSITORY }} --image-ids imageTag="$IMAGE_TAG" --region ${{ env.AWS_REGION }} --query 'images[0].imageId.imageDigest' --output text 2>/dev/null || echo "")
+          [ -n "$DIGEST" ] && [ "$DIGEST" != "None" ] && aws ecr batch-delete-image --repository-name ${{ env.ECR_REPOSITORY }} --image-ids imageDigest="$DIGEST" --region ${{ env.AWS_REGION }} || true
+      - run: |
+          aws ecs update-service --cluster ${{ env.ECS_CLUSTER }} --service ${{ env.ECS_SERVICE }} --desired-count 0 --region ${{ env.AWS_REGION }}
+          aws ecs wait services-stable --cluster ${{ env.ECS_CLUSTER }} --services ${{ env.ECS_SERVICE }} --region ${{ env.AWS_REGION }}
