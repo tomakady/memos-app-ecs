@@ -10,9 +10,9 @@ This project demonstrates a complete production deployment workflow, transitioni
 
 ## Architecture
 
-<img src="docs/images/memos-dark.drawio.svg" alt="Memos Architecture Diagram - Dark Theme" width="800">
+<img src="docs/images/memos-dark.drawio.png" alt="Memos Architecture Diagram - Dark Theme" width="800">
 
-<img src="docs/images/memos-light.drawio.svg" alt="Memos Architecture Diagram - Light Theme" width="800">
+<img src="docs/images/memos-light.drawio.png" alt="Memos Architecture Diagram - Light Theme" width="800">
 
 ## Project Structure
 
